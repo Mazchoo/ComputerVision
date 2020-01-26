@@ -19,7 +19,6 @@ def showEachChannel(img, **kwargs):
     plt.subplot(1,3,3);
     showImage(img[:, :, 2], **kwargs)
 
-
 def getHueFromChroma(col_arr : np.array, chroma: np.float32, max_col : np.float32, min_col : np.float32):
     if chroma == 0:
         hue = 255
@@ -48,3 +47,18 @@ def convertRGBToHSVColor(colours : np.array):
     value = np.mean(col_arr)
     saturation = getSatuationFromChroma(col_arr, chroma, value)
     return np.array([hue, saturation, value], dtype = np.uint8)
+
+def convertToHSV(img : np.array):
+
+    img, height, width, channels, im_size = getChannels(img)
+    hsv_img = img.copy()
+    current_colour = np.ndarray(3, dtype = np.uint8)
+    last_channel = channels - 1
+
+    i = 0; j = 0; k = 0
+    for px in np.nditer(img):
+        current_colour[k] = px
+        if (k % channels) == last_channel:
+            hsv_img[i, j, :] = convertRGBToHSVColor(current_colour)
+        i, j, k = iterateImage(i, j, k, channels, width)
+    return hsv_img
