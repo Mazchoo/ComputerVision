@@ -9,7 +9,7 @@ import cv2
 
 from dataclasses import dataclass
 
-from Lib.nb_PixelManipulation import *
+from Export.nb_PixelManipulation import *
 
 
 @dataclass

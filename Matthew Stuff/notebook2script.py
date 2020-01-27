@@ -65,8 +65,8 @@ def notebook2scriptSingle(fname):
     for cell in code_cells: module += ''.join(cell['source'][1:]) + '\n\n'
     # remove trailing spaces
     module = re.sub(r' +$', '', module, flags=re.MULTILINE)
-    if not (fname.parent/'Lib').exists(): (fname.parent/'Lib').mkdir()
-    output_path = fname.parent/'Lib'/fname_out
+    if not (fname.parent/'Export').exists(): (fname.parent/'Export').mkdir()
+    output_path = fname.parent/'Export'/fname_out
     with io.open(output_path, "w", encoding="utf-8") as f:
         f.write(module[:-2])
     print(f"Converted {fname} to {output_path}")

@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-from Lib.nb_PixelManipulation import *
-from Lib.nb_HistogramEqualisation import *
+from Export.nb_PixelManipulation import *
+from Export.nb_HistogramEqualisation import *
 
 def showEachChannel(img, **kwargs):
     plt.figure(figsize=(20,10))
@@ -35,7 +35,7 @@ def getHueFromChroma(col_arr : np.array, chroma: np.float32, max_col : np.float3
     return hue
 
 def getSatuationFromChroma(col_arr : np.array, chroma : np.float32, value : np.float32):
-    saturation = 0 if value == 0 else (chroma / value) * (255/2)
+    saturation = 0 if value == 0 else (chroma / value) * (255/3)
     return saturation
 
 def convertRGBToHSVColor(colours : np.array):
