@@ -14,45 +14,36 @@ def createPixelTransform(old_size, target_size):
     return lambda x, y : (x_resize(x), y_resize(y))
 
 
-def extractPxWindow(px, img):
-    i, j = px
-    return np.ndarray((4,3),
-        dtype = np.uint8,
-        buffer = np.array([img[i, j, :],
+def extractPxWindow(coord, img, pixel_window):
+    i, j = coord
+    pixel_window[:] = [img[i, j, :],
         img[i, j + 1, :],
         img[i + 1, j, :],
-        img[i + 1, j + 1, :]])
-    )
+        img[i + 1, j + 1, :]]
 
-def getTargetIndices(float_px):
-    px1, px2 = np.int32(np.floor(float_px))
-    return np.ndarray((4,2),
-        dtype = np.int32,
-        buffer = np.array([px1, px2, px1, px2 + 1, px1 + 1, px2, px1 + 1, px2 + 1])
-    )
+def getTargetIndices(float_coord, ind_arr):
+    i, j = np.int32(np.floor(float_coord))
+    ind_arr[:] = [[i, j], [i, j + 1], [i + 1, j], [i + 1, j + 1]]
 
 def areaMultiply(px):
     return np.abs(px[0] * px[1])
 
-def getAreaArray(float_px, target_indices):
-    output = np.array([
-        areaMultiply(float_px - target_indices[3]),
-        areaMultiply(float_px - target_indices[2]),
-        areaMultiply(float_px - target_indices[1]),
-        areaMultiply(float_px - target_indices[0])
-    ], dtype = np.float64)
-    return output / np.sum(output)
+def getAreaArray(float_coord, target_indices, area_weights):
+    area_weights[:] =(
+        areaMultiply(float_coord - target_indices[3]),
+        areaMultiply(float_coord - target_indices[2]),
+        areaMultiply(float_coord - target_indices[1]),
+        areaMultiply(float_coord - target_indices[0]))
 
-def getValueArray(pixel_window, k):
-    return np.array([
+def getValueArray(pixel_window, k, value_weights):
+    value_weights[:] = (
         pixel_window[0, k], pixel_window[1, k],
-        pixel_window[2, k], pixel_window[3, k]
-    ], dtype = np.float64)
+        pixel_window[2, k], pixel_window[3, k])
 
-def areaInterpolation(pixel_window, float_px, target_indices, k):
-    a = getAreaArray(float_px, target_indices)
-    v = getValueArray(pixel_window, k)
-    return np.uint8(np.rint(np.dot(a, v)))
+def areaInterpolation(pixel_window, float_px, target_indices, k, area_weights, value_weights):
+    getAreaArray(float_px, target_indices, area_weights)
+    getValueArray(pixel_window, k, value_weights)
+    return np.uint8(np.rint(np.dot(area_weights, value_weights)))
 
 def upsizeImage(img, target_size, interpolation_method):
 
@@ -61,20 +52,25 @@ def upsizeImage(img, target_size, interpolation_method):
     if target_chn != channels : print('Target channels not equal to input.'); return
     px_transform = createPixelTransform((height, width), target_size)
     output_img = np.zeros(target_size, dtype = np.uint8)
-    chan_last_ind = channels - 1
 
     i, j, k = 0, 0, 0
     update_window = True
     float_coord = np.array([0.5, 0.5], dtype = np.float64)
-    target_inds  = getTargetIndices(float_coord)
+    target_inds  = np.ndarray((4,2), dtype = np.int32, buffer = np.array([0,0,0,1,1,0,1,1]))
     last_inds = target_inds[0]
-    pixel_window = extractPxWindow(last_inds, img)
+    pixel_window = np.ndarray((4,3), dtype = np.uint8)
+    extractPxWindow(last_inds, img, pixel_window)
+    area_weights = np.ndarray(4, np.float64)
+    value_weights = np.ndarray(4, np.float64)
+
     for px in np.nditer(output_img, op_flags = ['writeonly']):
-        px[...] = areaInterpolation(pixel_window, float_coord, target_inds, k)
         if np.any(np.int32(np.floor(float_coord)) != last_inds):
-            pixel_window = extractPxWindow(target_inds[0], img)
-            target_inds  = getTargetIndices(float_coord)
+            getTargetIndices(float_coord, target_inds)
+            extractPxWindow(target_inds[0], img, pixel_window)
             last_inds = target_inds[0]
+        px[...] = areaInterpolation(pixel_window, float_coord, target_inds, k, area_weights, value_weights)
         i, j, k = iterateImage(i, j, k, channels, target_wid)
-        float_coord = px_transform(i, j)
+        if k % channels == 0:
+            float_coord = px_transform(i, j)
+
     return output_img
