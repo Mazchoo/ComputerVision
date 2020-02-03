@@ -38,6 +38,18 @@ def iterateImage(i : int, j : int, k : int, channels : int, width : int):
     if j == width: j = 0; i+=1
     return i, j, k
 
+def iterateImage(i : int, j : int, k : int, channels : int, width : int):
+    k += 1
+    if k == channels: k = 0; j += 1
+    if j == width: j = 0; i+=1
+    return i, j, k
+
+def iterateImageFortran(i : int, j : int, k : int, height : int, width : int):
+    i += 1
+    if i == height: i = 0; j += 1
+    if j == width: j = 0; i = 0; k+=1
+    return i, j, k
+
 def createCountTable(table_shape : tuple):
     output = np.ndarray(table_shape, dtype = np.uint32)
     output.fill(0)
