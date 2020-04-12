@@ -69,7 +69,8 @@ def averageConv(n1 : int, n2 : int):
     return conv1, conv2
 
 class fixedSizeQueue:
-    def __init__(self, n_elements : int, padding_value : int, conv_arr : np.array, **kwargs):
+    def __init__(self, conv_arr : np.array, padding_value : int, **kwargs):
+        n_elements = len(conv_arr)
         self.data = np.ndarray(n_elements, **kwargs)
         self.conv_arr = conv_arr
         self.padding_value = padding_value
@@ -117,7 +118,7 @@ def verticalConvolution(output_img : np.array, update_lag : int, conv_queues : l
         if i > update_lag:
             prev_px = update_queues[0].get()
             prev_px[...] = conv_queues[0].convolve()
-        if (i == 0) and (k == 0):
+        if (i == 0):
             convolveRemainingPixels(update_queues, conv_queues, 1, update_lag)
     return output_img
 
@@ -144,10 +145,10 @@ def getNrChannelsConv(img : np.array, row_or_col : bool):
         return img.shape[2]
 
 def oneDimConvolution(img : np.array, conv_arr : np.array, row_or_col : bool = True, padding_value : int = 255):
-    if img.dtype != np.float32: img = np.float32(img) # Will return copy when input image is not float 32
+    if img.dtype != np.float32 : img = np.float32(img) # Will return copy when input image is not float 32
     channels = getNrChannelsConv(img, row_or_col)
     kernel_size = len(conv_arr)
-    conv_queues = [fixedSizeQueue(kernel_size, padding_value, conv_arr, dtype = np.float32) for _ in range(channels)]
+    conv_queues = [fixedSizeQueue(conv_arr, padding_value, dtype = np.float32) for _ in range(channels)]
     update_queues = [SimpleQueue() for _ in range(channels)]
     update_lag = kernel_size//2
     if row_or_col:
