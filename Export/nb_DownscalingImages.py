@@ -8,7 +8,6 @@ import cv2
 
 from Export.nb_Convolutions1D import *
 from Export.nb_UpScalingImages import *
-from Export.nb_HistogramEqualisation import *
 
 def getTargetConvSize(current_size : tuple, target_size : tuple):
     target_height = (current_size[0] - 1) // target_size[0] + 1
@@ -21,6 +20,13 @@ def resetAllConvolutionQueues(conv_queues, nr_channels):
     for k in range(nr_channels):
         conv_queues[k].reset()
 
+def iterateRemainingIndex(k, queue_ind, nr_channels):
+    k += 1
+    if k == nr_channels:
+        k = 0
+        queue_ind += 1
+    return k, queue_ind
+
 def strideConvolveRemaining(queue_ind : int, nr_channels : int,
         update_queues : list, conv_queues : list, valid_idx : np.array):
     k = 0
@@ -29,10 +35,7 @@ def strideConvolveRemaining(queue_ind : int, nr_channels : int,
         conv_queues[k].update()
         prev_px = update_queues[k].get()
         if valid_idx[queue_ind] : prev_px[...] = conv_queues[k].convolve()
-        k += 1
-        if k == nr_channels:
-            k = 0
-            queue_ind += 1
+        k, queue_ind = iterateRemainingIndex(k, queue_ind, nr_channels)
     resetAllConvolutionQueues(conv_queues, nr_channels)
 
 def getValidTransformCordinates(arr_len : int, update_lag : int, use_height : bool, coordinateTransform):
@@ -98,10 +101,7 @@ def outputStrideConvRemaining(output_img : np.array, dim_length : int, valid_idx
             else:
                 out_i, out_j = np.uint32(np.floor(coordinateTransform(queue_ind - update_lag, current_ind)))
             output_img[out_i, out_j] = conv_queues[k].convolve()
-        k += 1
-        if k == nr_channels:
-            k = 0
-            queue_ind += 1
+        k, queue_ind = iterateRemainingIndex(k, queue_ind, nr_channels)
     resetAllConvolutionQueues(conv_queues, nr_channels)
 
 def horizontalOutputConvolution(input_img : np.array, output_img : np.array,
@@ -128,16 +128,16 @@ def verticalOutputConvolution(input_img : np.array, output_img : np.array,
         gauss_conv : np.array, coordinateTransform):
     i, j, k = 0, 0, 0
     update_lag = len(gauss_conv) // 2
-    _, height, width, _, _ = getChannels(input_img)
+    _, height, width, channels, _ = getChannels(input_img)
     valid_width_idx = getValidTransformCordinates(width, 0, False, coordinateTransform)
     valid_height_idx = getValidTransformCordinates(height, update_lag, True, coordinateTransform)
-    conv_queues = [fixedSizeQueue(gauss_conv, 255, dtype = np.float32)]
+    conv_queues = [fixedSizeQueue(gauss_conv, 255, dtype = np.float32) for _ in range(channels)]
     for px in np.nditer(input_img, order = 'F', op_flags = ['readonly']):
-        conv_queues[0].update(px)
+        conv_queues[k].update(px)
         if i >= update_lag:
             if valid_height_idx[i] and valid_width_idx[j]:
                 out_i, out_j = np.uint32(np.floor(coordinateTransform(i-update_lag, j)))
-                output_img[out_i, out_j, k] = conv_queues[0].convolve()
+                output_img[out_i, out_j, k] = conv_queues[k].convolve()
         if i == height - 1 and valid_width_idx[j]:
             outputStrideConvRemaining(output_img, height, valid_height_idx,
                 conv_queues, 1, j, update_lag, False, coordinateTransform)
