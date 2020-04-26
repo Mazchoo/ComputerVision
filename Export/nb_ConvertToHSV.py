@@ -19,6 +19,24 @@ def showEachChannel(img, **kwargs):
     plt.subplot(1,3,3);
     showImage(img[:, :, 2], **kwargs)
 
+def convertToGrey(img : np.array, convert_to_value: bool = False):
+
+    _, height, width, channels, im_size = getChannels(img)
+    if channels != 3 : print('Error! 3 channel image expected RGB2GRAY'); return
+    weight_vector = np.ndarray(3, dtype = np.float32)
+    if convert_to_value:
+        weight_vector.fill(0.333333)
+    else:
+        weight_vector[:] = [0.2989, 0.5870, 0.1140]
+
+    i = 0; j = 0; k = 0
+    for px in np.nditer(img, op_flags = ['readwrite']):
+        if k == 0 :
+            update_px = px
+        update_px[...] += np.uint8(px * weight_vector[k])
+        i, j, k = iterateImage(i, j, k, 3, width)
+    return img[:, :, 0]
+
 def getHueFromChroma(col_arr : np.array, chroma: np.float32, max_col : np.float32, min_col : np.float32):
     if chroma == 0:
         hue = 255
@@ -35,7 +53,7 @@ def getHueFromChroma(col_arr : np.array, chroma: np.float32, max_col : np.float3
     return hue
 
 def getSatuationFromChroma(col_arr : np.array, chroma : np.float32, value : np.float32):
-    saturation = 0 if value == 0 else (chroma / value) * (255/3)
+    saturation = 0 if value == 0 else (chroma / value) * (255/3) # chroma capped at range(0,0,255)/mean(0,0,255)
     return saturation
 
 def convertRGBToHSVColor(colours : np.array):
@@ -50,15 +68,18 @@ def convertRGBToHSVColor(colours : np.array):
 
 def convertToHSV(img : np.array):
 
-    img, height, width, channels, im_size = getChannels(img)
-    hsv_img = img.copy()
+    _, _, width, channels, im_size = getChannels(img)
+    if channels != 3: print('Error! 3 channels are expected RGB2HSV'); return
     current_colour = np.ndarray(3, dtype = np.uint8)
-    last_channel = channels - 1
+    current_queue = [None] * 3
 
     i = 0; j = 0; k = 0
-    for px in np.nditer(img):
+    for px in np.nditer(img, op_flags = ['readwrite']):
         current_colour[k] = px
-        if (k % channels) == last_channel:
-            hsv_img[i, j, :] = convertRGBToHSVColor(current_colour)
+        current_queue[k] = px
         i, j, k = iterateImage(i, j, k, channels, width)
-    return hsv_img
+        if k == 0:
+            current_colour[:] = convertRGBToHSVColor(current_colour)
+            for chan in range(3):
+                current_queue[chan][...] = current_colour[chan]
+    return img
