@@ -8,7 +8,7 @@ import cv2
 from queue import SimpleQueue
 from functools import lru_cache
 
-from Export.nb_PixelManipulation import *
+from Export.nb_PixelManipulation import iterateImageFortran, iterateImage, getChannels, timeSomething
 
 @lru_cache()
 def choice(m : int, n : int):
@@ -45,7 +45,6 @@ def derivative(conv_len : int):
         x[...] = -1. if neg else 1.
         i += 1
     return output
-
 
 def gaussianConv(n1 : int, n2 : int):
     if n1 % 2 != 1: print('Convolution size must be odd!', n1); return

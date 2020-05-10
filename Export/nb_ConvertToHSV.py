@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-from Export.nb_PixelManipulation import *
-from Export.nb_HistogramEqualisation import *
+from Export.nb_PixelManipulation import iterateImage, showImage, getChannels
+from Export.nb_HistogramEqualisation import compareTwoImages, computeHistogram
 
 def showEachChannel(img, **kwargs):
     plt.figure(figsize=(20,10))

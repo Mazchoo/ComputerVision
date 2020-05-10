@@ -5,8 +5,7 @@
 # file to edit: dev_nb/CannyEdgeDetection.ipynb
 import numpy as np
 
-from Export.nb_Convolutions1D import *
-from Export.nb_PixelManipulation import *
+from Export.nb_Convolutions1D import oneDimConvolution, derivativeConv, gaussian, derivative
 
 def horizontalSobel(img : np.array, blur_conv : np.array, edge_conv : np.array):
     img = oneDimConvolution(img, blur_conv, False, 255)
@@ -15,3 +14,13 @@ def horizontalSobel(img : np.array, blur_conv : np.array, edge_conv : np.array):
 def verticalSobel(img : np.array, blur_conv : np.array, edge_conv : np.array):
     img = oneDimConvolution(img, blur_conv, True, 255)
     return oneDimConvolution(img, edge_conv, False, 255)
+
+def cannyEdgeDetection(img : np.array, lower_thresh : int, upper_thresh : int, blur_size : int, edge_size : int):
+    if lower_thresh > upper_thresh: print('Lower thresh is higher than upper thresh!'); return
+    deriv_conv1, deriv_conv2 = derivativeConv(edge_size, edge_size)
+    blur_conv = gaussian(blur_size); blur_conv /= np.sum(blur_conv)
+    edge_conv = derivative(edge_size)
+    hori_img = img.copy()
+    hori_img = horizontalSobel(hori_img, blur_conv, edge_conv)
+    vert_img = verticalSobel(img, blur_conv, edge_conv)
+    return thresholdEdgeMagnitude(hori_img, vert_img, lower_thresh, upper_thresh)
