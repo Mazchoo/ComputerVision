@@ -6,8 +6,8 @@
 import numpy as np
 import cv2
 
-from Export.nb_PixelManipulation import *
-from Export.nb_HistogramEqualisation import *
+from Export.nb_PixelManipulation import getChannels, iterateImage
+from Export.nb_HistogramEqualisation import compareTwoImages
 
 def calcualteSizeTransParams(old_dim, target_dim):
     a = (old_dim - 2)/target_dim
@@ -35,7 +35,7 @@ def areaMultiply(px : np.array):
     return np.abs(px[0] * px[1])
 
 def getAreaArray(float_coord : np.array, target_indices : np.array, area_weights : np.array):
-    area_weights[:] =(
+    area_weights[:] = (
         areaMultiply(float_coord - target_indices[3]),
         areaMultiply(float_coord - target_indices[2]),
         areaMultiply(float_coord - target_indices[1]),
@@ -63,7 +63,6 @@ def prepareInterpolationBookKeepingVars(img : np.array):
     area_weights = np.ndarray(4, np.float64)
     value_weights = np.ndarray(4, np.float64)
     return i, j, k, float_coord, current_inds, latest_inds, pixel_window, area_weights, value_weights
-
 
 
 # Different interpolation methods not implemented

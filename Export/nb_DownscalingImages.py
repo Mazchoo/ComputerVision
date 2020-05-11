@@ -6,8 +6,10 @@
 import numpy as np
 import cv2
 
-from Export.nb_Convolutions1D import *
-from Export.nb_UpScalingImages import *
+from Export.nb_Convolutions1D import fixedSizeQueue, derivative, gaussianConv
+from Export.nb_UpScalingImages import createPixelTransform
+from Export.nb_PixelManipulation import getChannels, iterateImage
+from queue import SimpleQueue
 
 def getTargetConvSize(current_size : tuple, target_size : tuple):
     target_height = (current_size[0] - 1) // target_size[0] + 1

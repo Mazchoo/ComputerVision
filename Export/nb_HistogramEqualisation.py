@@ -9,7 +9,7 @@ import cv2
 
 from dataclasses import dataclass
 
-from Export.nb_PixelManipulation import *
+from Export.nb_PixelManipulation import iterateImage, getChannels, showImage, computeHistogram
 
 
 @dataclass
