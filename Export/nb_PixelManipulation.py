@@ -38,12 +38,6 @@ def iterateImage(i : int, j : int, k : int, channels : int, width : int):
     if j == width: j = 0; i+=1
     return i, j, k
 
-def iterateImage(i : int, j : int, k : int, channels : int, width : int):
-    k += 1
-    if k == channels: k = 0; j += 1
-    if j == width: j = 0; i+=1
-    return i, j, k
-
 def iterateImageFortran(i : int, j : int, k : int, height : int, width : int):
     i += 1
     if i == height: i = 0; j += 1
@@ -93,16 +87,6 @@ def showImage(img, **kwargs):
     plt.imshow(img, **kwargs);
     plt.gca().set_xticks([]);
     plt.gca().set_yticks([]);
-
-def updateValue(img : np.array, update_colour : np.array, new_colour : np.array, distance_thresh : float):
-    i = 0; j = 0; k = 0
-    update_pixels = [0] * 3
-    current_colour = np.array(update_pixels, dtype = np.uint8)
-    for px in np.nditer(img, order = 'C', op_flags = ['readwrite']):
-        current_colour[k] = px
-        if np.linalg.norm(current_colour - update_colour) < distance_thresh:
-            current_colour
-        i, j, k = iterateImage(i, j, k, channels, width)
-    return img
+    return plt.gca()
 
 export_test = True

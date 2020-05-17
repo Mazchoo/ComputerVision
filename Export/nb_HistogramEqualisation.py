@@ -9,7 +9,7 @@ import cv2
 
 from dataclasses import dataclass
 
-from Export.nb_PixelManipulation import iterateImage, getChannels, showImage, computeHistogram
+from Export.nb_PixelManipulation import iterateImage, getChannels, showImage, computeHistogram, plotHistogram
 
 
 @dataclass
@@ -48,8 +48,9 @@ def enhanceContrast(img : np.array, channel_range : ChannelRange):
     return img
 
 def compareTwoImages(im_x, im_y, **kwargs):
-    plt.figure(figsize=(20,10))
+    fig = plt.figure(figsize=(20,10))
     plt.subplot(1,2,1);
-    showImage(im_x, **kwargs)
+    axis1 = showImage(im_x, **kwargs)
     plt.subplot(1,2,2);
-    showImage(im_y, **kwargs)
+    axis2 = showImage(im_y, **kwargs)
+    return axis1, axis2, fig
