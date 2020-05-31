@@ -23,7 +23,7 @@ def getChannels(img : np.array):
     if len(img.shape) == 2:
         height, width = img.shape
         channels = 1
-        im_copy.reshape(height, width, 1)
+        im_copy = im_copy.reshape(height, width, channels)
         return im_copy, height, width, channels, width*height
 
     if len(img.shape) == 3:
