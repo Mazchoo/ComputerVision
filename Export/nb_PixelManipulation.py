@@ -18,17 +18,15 @@ def timeSomething(func, n_iter, *args, **kwargs):
 
 def getChannels(img : np.array):
 
-    im_copy = img.copy()
-
     if len(img.shape) == 2:
         height, width = img.shape
         channels = 1
-        im_copy = im_copy.reshape(height, width, channels)
-        return im_copy, height, width, channels, width*height
+        img = img.reshape(height, width, channels)
+        return img, height, width, channels, width*height
 
     if len(img.shape) == 3:
         height, width, channels = img.shape
-        return im_copy, height, width, channels, width*height
+        return img, height, width, channels, width*height
 
     print('That does not look like an image to me.')
 

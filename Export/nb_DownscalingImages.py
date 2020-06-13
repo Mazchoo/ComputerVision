@@ -6,9 +6,9 @@
 import numpy as np
 import cv2
 
-from Export.nb_Convolutions1D import fixedSizeQueue, derivative, gaussianConv
+from Export.nb_Convolutions1D import fixedSizeQueue, derivative, gaussianConv, oneDimConvolution
 from Export.nb_UpScalingImages import createPixelTransform
-from Export.nb_PixelManipulation import getChannels, iterateImage
+from Export.nb_PixelManipulation import getChannels, iterateImage, iterateImageFortran
 from queue import SimpleQueue
 
 def getTargetConvSize(current_size : tuple, target_size : tuple):
@@ -147,18 +147,17 @@ def verticalOutputConvolution(input_img : np.array, output_img : np.array,
     return output_img
 
 def downSizeImage(img : np.array, target_size : tuple):
-    input_img = img.copy()
-    current_size = input_img.shape[:2]
-    channels = input_img.shape[2]
+    current_size = img.shape[:2]
+    channels = img.shape[2]
     target_conv = getTargetConvSize(frog_current_size, frog_target_size)
     sizeTransform = createPixelTransform(target_size + np.array([1,1]), current_size - np.array([1,1]))
     gauss_conv1, gauss_conv2 = gaussianConv(*target_conv) # vertical conv, horizontal conv
     output_shape = list(target_size) + [channels]
     output_img = np.ndarray(output_shape, dtype = np.uint8)
     if target_conv[0] > target_conv[1]:
-        input_img = horizontalStrideConvolution(input_img, gauss_conv2, sizeTransform)
-        output_img = verticalOutputConvolution(input_img, output_img, gauss_conv1, sizeTransform)
+        img = horizontalStrideConvolution(img, gauss_conv2, sizeTransform)
+        img = verticalOutputConvolution(img, output_img, gauss_conv1, sizeTransform)
     else:
-        input_img = verticalStrideConvolution(input_img, gauss_conv1, sizeTransform)
-        output_img = horizontalOutputConvolution(input_img, output_img, gauss_conv2, sizeTransform)
+        img = verticalStrideConvolution(img, gauss_conv1, sizeTransform)
+        output_img = horizontalOutputConvolution(img, output_img, gauss_conv2, sizeTransform)
     return output_img
